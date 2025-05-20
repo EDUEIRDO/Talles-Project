@@ -1,12 +1,14 @@
 package org.dbconnection;
 
+import javax.swing.*;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class DatabaseManager {
+public class DatabaseManager extends JFrame{
 
     private static void InsertInto(Connection connection ) {
         try {
@@ -105,6 +107,8 @@ public class DatabaseManager {
     }
     public static void main(String[] args) {
         Connection connection = connect();
+    JOptionPane.showMessageDialog(null, "Test message execution");
+
         if (connection != null) {
             Options(connection);
             try {

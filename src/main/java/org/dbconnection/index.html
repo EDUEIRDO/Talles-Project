@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Database Manager</title>
+</head>
+<body>
+<h1>Database Manager</h1>
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="user : ${users}">
+        <td th:text="${user.id}"></td>
+        <td th:text="${user.name}"></td>
+        <td>
+            <form th:action="@{/update}" method="post">
+                <input type="hidden" name="id" th:value="${user.id}">
+                <input type="text" name="name" th:value="${user.name}">
+                <button type="submit">Update</button>
+            </form>
+            <form th:action="@{/delete}" method="post">
+                <input type="hidden" name="id" th:value="${user.id}">
+                <button type="submit">Delete</button>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+<h2>Insert New User</h2>
+<form th:action="@{/insert}" method="post">
+    <label for="name">Name:</label>
+    <input type="text" id="name" name="name">
+    <button type="submit">Insert</button>
+</form>
+</body>
+</html>
