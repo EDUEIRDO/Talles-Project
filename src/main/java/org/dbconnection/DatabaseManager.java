@@ -8,14 +8,18 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class DatabaseManager extends JFrame{
+public class DatabaseManager{
 
     private static void InsertInto(Connection connection ) {
         try {
             Statement statement = connection.createStatement();
             statement.setQueryTimeout(30);
-
-            statement.executeUpdate("INSERT INTO users (name) VALUES ('Avast');");
+            statement.executeUpdate("INSERT INTO Client (name) VALUES ('Avast');");
+            statement.executeUpdate("INSERT INTO Client (name) VALUES ('Carlos');");
+            statement.executeUpdate("INSERT INTO Client (name) VALUES ('Free');");
+            statement.executeUpdate("INSERT INTO Client (name) VALUES ('Leticia');");
+            statement.executeUpdate("INSERT INTO Client (name) VALUES ('REPO');");
+            statement.executeUpdate("INSERT INTO Restaurant (name, description, openingHours) VALUES ('Baronni', 'Um otimo restaurante para a familia', '18:00 ate 02:00');");
         } catch (SQLException e) {
             System.err.println("CRUD operation failed: " + e.getMessage());
         }
@@ -47,15 +51,34 @@ public class DatabaseManager extends JFrame{
             Statement statement = connection.createStatement();
             statement.setQueryTimeout(30);
 
-            ResultSet resultSet = statement.executeQuery("SELECT * FROM users;");
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM Restaurant;");
+            StringBuilder output = new StringBuilder();
             while (resultSet.next()) {
-                System.out.println("ID do individuo: " + resultSet.getInt("id"));
-                System.out.println("Nome do individuo: " + resultSet.getString("name"));
+                int id = resultSet.getInt("id");
+                String name = resultSet.getString("name");
+                String description = resultSet.getString("description");
+                String openingHours = resultSet.getString("openingHours");
+                output.append("ID do Restaurante: ").append(id).append("\n");
+                output.append("Nome do Restaurante: ").append(name).append("\n");
+                output.append("Descricao do Restaurante: ").append(description).append("\n");
+                output.append("Horario de funcionamento: ").append(openingHours).append("\n\n");
+
+//                System.out.println("ID do individuo: " + resultSet.getInt("id"));
+//                System.out.println("Nome do individuo: " + resultSet.getString("name"));
+            }
+            if (!output.isEmpty()) {
+                JOptionPane.showMessageDialog(null, output.toString(), "Dados do Banco", JOptionPane.INFORMATION_MESSAGE);
+
+            }
+            else {
+                JOptionPane.showMessageDialog(null, "Nenhum dado encontrado na tabela.", "Dados do Banco", JOptionPane.WARNING_MESSAGE);
+
             }
             resultSet.close();
             statement.close();
         } catch (SQLException e) {
             System.out.println("CRUD operation failed: " + e.getMessage());
+            JOptionPane.showMessageDialog(null, "Erro ao acessar o banco de dados: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -75,9 +98,51 @@ public class DatabaseManager extends JFrame{
         try {
             Statement statement = connection.createStatement();
             statement.setQueryTimeout(30);
-//
-            statement.executeUpdate("DROP TABLE IF EXISTS users");
-            statement.executeUpdate("CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT);");
+
+            // Table Client
+            statement.executeUpdate("DROP TABLE IF EXISTS Client");
+            statement.executeUpdate("CREATE TABLE Client (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT);");
+
+            // Table Restaurant
+            statement.executeUpdate("DROP TABLE IF EXISTS Restaurant;");
+            statement.executeUpdate("CREATE TABLE Restaurant (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, description TEXT, openingHours TEXT, restaurantAddress TEXT);");
+
+            // Table Categories
+            statement.executeUpdate("DROP TABLE IF EXISTS Categories;");
+            statement.executeUpdate("CREATE TABLE Categories (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, description TEXT, type TEXT);");
+
+            // Table Address
+            // Restaurants are included in this table
+            statement.executeUpdate("DROP TABLE IF EXISTS Address;");
+            statement.executeUpdate("CREATE TABLE Address (id INTEGER PRIMARY KEY AUTOINCREMENT, street TEXT, district TEXT, city TEXT, state TEXT, houseNumber INTEGER);");
+
+            // Table Product
+            // Add categories_id and restaurant_id
+            statement.executeUpdate("DROP TABLE IF EXISTS Product;");
+            statement.executeUpdate("CREATE TABLE Product (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, price REAL, description TEXT );");
+
+            // Table Request
+            // Add address_id, restaurant_id, statusRequest_id, cupom_id, statusPayment and typeOfPayment_id
+            statement.executeUpdate("DROP TABLE IF EXISTS Request;");
+            statement.executeUpdate("CREATE TABLE Request (id INTEGER PRIMARY KEY AUTOINCREMENT, totalValue REAL, deliveryValue REAL);");
+
+            // Table statusRequest
+            statement.executeUpdate("DROP TABLE IF EXISTS statusRequest;");
+            statement.executeUpdate("CREATE TABLE statusRequest (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT);");
+
+            // Table productRequest
+            // Add product_id and request_id fk
+            statement.executeUpdate("DROP TABLE IF EXISTS productRequest;");
+            statement.executeUpdate("CREATE TABLE productRequest (id INTEGER PRIMARY KEY AUTOINCREMENT);");
+
+            // Table typePayment
+            statement.executeUpdate("DROP TABLE IF EXISTS typePayment;");
+            statement.executeUpdate("CREATE TABLE typePayment (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT);");
+
+            // Table statusPayment
+            statement.executeUpdate("DROP TABLE IF EXISTS statusPayment;");
+            statement.executeUpdate("CREATE TABLE statusPayment (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT);");
+
 //            statement.executeUpdate("INSERT INTO users(name) VALUES ('Marcos')");
 //            statement.executeUpdate("INSERT INTO users(name) VALUES ('Igor')");
 //            statement.executeUpdate("INSERT INTO users(name) VALUES ('Jorge')");
@@ -107,10 +172,11 @@ public class DatabaseManager extends JFrame{
     }
     public static void main(String[] args) {
         Connection connection = connect();
-    JOptionPane.showMessageDialog(null, "Test message execution");
 
         if (connection != null) {
             Options(connection);
+            // Input Dialog
+            //JOptionPane.showInputDialog(null, "Type here");
             try {
                 connection.close();
             } catch (SQLException e) {
