@@ -2,8 +2,6 @@ package org.dbconnection;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -92,17 +90,17 @@ class Cliente implements Identifiable{
     }
 
 }
-class Restaurante implements Identifiable {
+class Anime implements Identifiable {
     private final String id;
     private String nome;
-    private String endereco;
-    private String tipoCozinha;
+    private String categoria;
+    private String anoLancamento;
 
-    public Restaurante(String id, String nome, String endereco, String tipoCozinha) {
+    public Anime(String id, String nome, String categoria, String anoLancamento) {
         this.id = id;
         this.nome = nome;
-        this.endereco = endereco;
-        this.tipoCozinha = tipoCozinha;
+        this.categoria = categoria;
+        this.anoLancamento = anoLancamento;
     }
 
     @Override
@@ -118,25 +116,25 @@ class Restaurante implements Identifiable {
         this.nome = nome;
     }
 
-    public String getEndereco() {
-        return endereco;
+    public String getCategoria() {
+        return categoria;
     }
 
-    public void setEndereco(String endereco) {
-        this.endereco = endereco;
+    public void setCategoria(String categoria) {
+        this.categoria = categoria;
     }
 
-    public String getTipoCozinha() {
-        return tipoCozinha;
+    public String getAnoLancamento() {
+        return anoLancamento;
     }
 
-    public void setTipoCozinha(String tipoCozinha) {
-        this.tipoCozinha = tipoCozinha;
+    public void setAnoLancamento(String anoLancamento) {
+        this.anoLancamento = anoLancamento;
     }
 
     @Override
     public String toString() {
-        return "ID: " + id + ", Nome: " + nome + ", Endereço: " + endereco + ", Cozinha: " + tipoCozinha;
+        return "ID: " + id + ", Nome: " + nome + ", Categoria: " + categoria + ", ANo de lançamento: " + anoLancamento;
     }
 }
 class Funcionario implements Identifiable {
@@ -197,8 +195,8 @@ class ClienteNaoEncontradoException extends Exception {
         super(message);
     }
 }
-class RestauranteNaoEncontradoException extends Exception {
-    public RestauranteNaoEncontradoException(String message) {
+class AnimeNaoEncontradoException extends Exception {
+    public AnimeNaoEncontradoException(String message) {
         super(message);
     }
 }
@@ -345,70 +343,70 @@ class ClienteDAO {
     }
 }
 
-class RestauranteDAO {
-    private List<Restaurante> restaurantes;
-    private static final String ARQUIVO_DADOS = "restaurantes.ser";
+class AnimeDAO {
+    private List<Anime> animes;
+    private static final String ARQUIVO_DADOS = "anime.txt";
 
-    public RestauranteDAO() {
-        restaurantes = carregarRestaurantes();
+    public AnimeDAO() {
+        animes = carregarAnimes();
     }
 
-    public void salvarRestaurantes() {
+    public void salvarAnimes() {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(ARQUIVO_DADOS))) {
-            oos.writeObject(restaurantes);
-            System.out.println("Dados dos restaurantes salvos com sucesso.");
+            oos.writeObject(animes);
+            System.out.println("Dados dos animes salvos com sucesso.");
         } catch (IOException e) {
-            System.err.println("Erro ao salvar dados dos restaurantes: " + e.getMessage());
+            System.err.println("Erro ao salvar dados dos animes: " + e.getMessage());
         }
     }
 
     @SuppressWarnings("unchecked")
-    private List<Restaurante> carregarRestaurantes() {
+    private List<Anime> carregarAnimes() {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(ARQUIVO_DADOS))) {
-            return (List<Restaurante>) ois.readObject();
+            return (List<Anime>) ois.readObject();
         } catch (FileNotFoundException e) {
-            System.out.println("Arquivo de dados de restaurantes não encontrado. Criando nova lista.");
+            System.out.println("Arquivo de dados de animes não encontrado. Criando nova lista.");
             return new ArrayList<>();
         } catch (IOException | ClassNotFoundException e) {
-            System.err.println("Erro ao carregar dados dos restaurantes: " + e.getMessage());
+            System.err.println("Erro ao carregar dados dos animes: " + e.getMessage());
             return new ArrayList<>();
         }
     }
 
-    public void create(Restaurante restaurante) {
-        restaurantes.add(restaurante);
+    public void create(Anime anime) {
+        animes.add(anime);
     }
 
-    public List<Restaurante> read() {
-        return new ArrayList<>(restaurantes);
+    public List<Anime> read() {
+        return new ArrayList<>(animes);
     }
 
-    public void update(Restaurante restauranteAtualizado) throws RestauranteNaoEncontradoException {
+    public void update(Anime animeAtualizado) throws AnimeNaoEncontradoException {
         boolean encontrado = false;
-        for (int i = 0; i < restaurantes.size(); i++) {
-            if (restaurantes.get(i).getId().equals(restauranteAtualizado.getId())) {
-                restaurantes.set(i, restauranteAtualizado);
+        for (int i = 0; i < animes.size(); i++) {
+            if (animes.get(i).getId().equals(animeAtualizado.getId())) {
+                animes.set(i, animeAtualizado);
                 encontrado = true;
                 break;
             }
         }
         if (!encontrado) {
-            throw new RestauranteNaoEncontradoException("Restaurante com ID " + restauranteAtualizado.getId() + " não encontrado para atualização.");
+            throw new AnimeNaoEncontradoException("Anime com ID " + animeAtualizado.getId() + " não encontrado para atualização.");
         }
     }
 
-    public void delete(String idRestaurante) throws RestauranteNaoEncontradoException {
-        Restaurante restauranteParaRemover = null;
-        for (Restaurante r : restaurantes) {
-            if (r.getId().equals(idRestaurante)) {
-                restauranteParaRemover = r;
+    public void delete(String idAnime) throws AnimeNaoEncontradoException {
+        Anime animeParaRemover = null;
+        for (Anime r : animes) {
+            if (r.getId().equals(idAnime)) {
+                animeParaRemover = r;
                 break;
             }
         }
-        if (restauranteParaRemover != null) {
-            restaurantes.remove(restauranteParaRemover);
+        if (animeParaRemover != null) {
+            animes.remove(animeParaRemover);
         } else {
-            throw new RestauranteNaoEncontradoException("Restaurante com ID " + idRestaurante + " não encontrado para exclusão.");
+            throw new AnimeNaoEncontradoException("Anime com ID " + idAnime + " não encontrado para exclusão.");
         }
     }
 }
@@ -485,7 +483,7 @@ class GerenciadorEntidadesGUI extends JFrame {
 
     private ProdutoDAO produtoDAO;
     private ClienteDAO clienteDAO;
-    private RestauranteDAO restauranteDAO;
+    private AnimeDAO animeDAO;
     private FuncionarioDAO funcionarioDAO;
 
     // Fields for Produto Tab
@@ -496,9 +494,9 @@ class GerenciadorEntidadesGUI extends JFrame {
     private JTextField cliIdField, cliNomeField, cliTelefoneField, cliEmailField;
     private JTextArea cliDisplayArea;
 
-    // Fields for Restaurante Tab
-    private JTextField restIdField, restNomeField, restEnderecoField, restTipoCozinhaField;
-    private JTextArea restDisplayArea;
+    // Fields for anime Tab
+    private JTextField aniIdField, aniNomeField, aniCategoriaField, aniAnoLancamentoField;
+    private JTextArea aniDisplayArea;
 
     // Fields for Funcionario Tab
     private JTextField funcIdField, funcNomeField, funcCargoField, funcSalarioField;
@@ -508,7 +506,7 @@ class GerenciadorEntidadesGUI extends JFrame {
     public GerenciadorEntidadesGUI() {
         produtoDAO = new ProdutoDAO();
         clienteDAO = new ClienteDAO();
-        restauranteDAO = new RestauranteDAO();
+        animeDAO = new AnimeDAO();
         funcionarioDAO = new FuncionarioDAO();
 
         setTitle("Gerenciador de Cadastros");
@@ -522,13 +520,13 @@ class GerenciadorEntidadesGUI extends JFrame {
         JPanel produtoPanel = createProdutoPanel();
         tabbedPane.addTab("Produtos", produtoPanel);
 
-        // --- Cliente Tab ---
+        // --- cLiente Tab ---
         JPanel clientePanel = createClientePanel();
         tabbedPane.addTab("Clientes", clientePanel);
 
-        // --- Restaurante Tab ---
-        JPanel restaurantePanel = createRestaurantePanel();
-        tabbedPane.addTab("Restaurantes", restaurantePanel);
+        // --- anime Tab ---
+        JPanel animePanel = createAnimePanel();
+        tabbedPane.addTab("Animes", animePanel);
 
         // --- Funcionario Tab ---
         JPanel funcionarioPanel = createFuncionarioPanel();
@@ -542,7 +540,7 @@ class GerenciadorEntidadesGUI extends JFrame {
             public void windowClosing(java.awt.event.WindowEvent windowEvent) {
                 produtoDAO.salvarProdutos();
                 clienteDAO.salvarClientes();
-                restauranteDAO.salvarRestaurantes();
+                animeDAO.salvarAnimes();
                 funcionarioDAO.salvarFuncionarios();
                 System.out.println("Todos os dados foram salvos.");
             }
@@ -636,44 +634,44 @@ class GerenciadorEntidadesGUI extends JFrame {
     }
 
 
-    private JPanel createRestaurantePanel() {
+    private JPanel createAnimePanel() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         JPanel inputPanel = new JPanel(new GridLayout(4, 2, 5, 5));
-        inputPanel.setBorder(BorderFactory.createTitledBorder("Dados do Restaurante"));
+        inputPanel.setBorder(BorderFactory.createTitledBorder("Dados do Anime"));
         inputPanel.add(new JLabel("ID:"));
-        restIdField = new JTextField();
-        inputPanel.add(restIdField);
+        aniIdField = new JTextField();
+        inputPanel.add(aniIdField);
         inputPanel.add(new JLabel("Nome:"));
-        restNomeField = new JTextField();
-        inputPanel.add(restNomeField);
-        inputPanel.add(new JLabel("Endereço:"));
-        restEnderecoField = new JTextField();
-        inputPanel.add(restEnderecoField);
-        inputPanel.add(new JLabel("Tipo de Cozinha:"));
-        restTipoCozinhaField = new JTextField();
-        inputPanel.add(restTipoCozinhaField);
+        aniNomeField = new JTextField();
+        inputPanel.add(aniNomeField);
+        inputPanel.add(new JLabel("Categoria:"));
+        aniCategoriaField = new JTextField();
+        inputPanel.add(aniCategoriaField);
+        inputPanel.add(new JLabel("Ano de lancamento:"));
+        aniAnoLancamentoField = new JTextField();
+        inputPanel.add(aniAnoLancamentoField);
         panel.add(inputPanel, BorderLayout.NORTH);
 
-        restDisplayArea = new JTextArea(15, 40);
-        restDisplayArea.setEditable(false);
-        JScrollPane scrollPane = new JScrollPane(restDisplayArea);
+        aniDisplayArea = new JTextArea(15, 40);
+        aniDisplayArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(aniDisplayArea);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         panel.add(scrollPane, BorderLayout.CENTER);
 
         JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        JButton createButton = new JButton("Criar Restaurante");
-        JButton updateButton = new JButton("Atualizar Restaurante");
-        JButton deleteButton = new JButton("Excluir Restaurante");
+        JButton createButton = new JButton("Criar Anime");
+        JButton updateButton = new JButton("Atualizar Anime");
+        JButton deleteButton = new JButton("Excluir Anime");
         actionPanel.add(createButton);
         actionPanel.add(updateButton);
         actionPanel.add(deleteButton);
         panel.add(actionPanel, BorderLayout.SOUTH);
 
-        createButton.addActionListener(e -> criarRestaurante());
-        updateButton.addActionListener(e -> atualizarRestaurante());
-        deleteButton.addActionListener(e -> excluirRestaurante());
+        createButton.addActionListener(e -> criarAnime());
+        updateButton.addActionListener(e -> atualizarAnime());
+        deleteButton.addActionListener(e -> excluirAnime());
 
         return panel;
     }
@@ -905,93 +903,93 @@ class GerenciadorEntidadesGUI extends JFrame {
     }
 
 
-    // --- CRUD Methods for Restaurante ---
-    private void criarRestaurante() {
+    // --- CRUD Methods for Anime ---
+    private void criarAnime() {
         try {
-            String id = restIdField.getText().trim();
-            String nome = restNomeField.getText().trim();
-            String endereco = restEnderecoField.getText().trim();
-            String tipoCozinha = restTipoCozinhaField.getText().trim();
+            String id = aniIdField.getText().trim();
+            String nome = aniNomeField.getText().trim();
+            String categoria = aniCategoriaField.getText().trim();
+            String anoLancamento = aniAnoLancamentoField.getText().trim();
 
             if (id.isEmpty() || nome.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "ID e Nome do Restaurante não podem ser vazios.", "Erro de Entrada", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "ID e Nome do Anime não podem ser vazios.", "Erro de Entrada", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            for (Restaurante r : restauranteDAO.read()) {
-                if (r.getId().equals(id)) {
-                    JOptionPane.showMessageDialog(this, "Restaurante com este ID já existe.", "Erro de Entrada", JOptionPane.ERROR_MESSAGE);
+            for (Anime a : animeDAO.read()) {
+                if (a.getId().equals(id)) {
+                    JOptionPane.showMessageDialog(this, "Anime com este ID já existe.", "Erro de Entrada", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
             }
-            Restaurante restaurante = new Restaurante(id, nome, endereco, tipoCozinha);
-            restauranteDAO.create(restaurante);
-            JOptionPane.showMessageDialog(this, "Restaurante criado com sucesso!");
-            clearRestauranteFields();
-            refreshRestauranteList();
+            Anime anime = new Anime(id, nome, categoria, anoLancamento);
+            animeDAO.create(anime);
+            JOptionPane.showMessageDialog(this, "Anime criado com sucesso!");
+            clearAnimeFields();
+            refreshAnimeList();
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao criar restaurante: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Erro ao criar anime: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    private void atualizarRestaurante() {
+    private void atualizarAnime() {
         try {
-            String id = restIdField.getText().trim();
-            String nome = restNomeField.getText().trim();
-            String endereco = restEnderecoField.getText().trim();
-            String tipoCozinha = restTipoCozinhaField.getText().trim();
+            String id = aniIdField.getText().trim();
+            String nome = aniNomeField.getText().trim();
+            String categoria = aniCategoriaField.getText().trim();
+            String anoLancamento = aniAnoLancamentoField.getText().trim();
 
             if (id.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "ID do Restaurante não pode ser vazio para atualização.", "Erro de Entrada", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "ID do Anime não pode ser vazio para atualização.", "Erro de Entrada", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            Restaurante restauranteAtualizado = new Restaurante(id, nome, endereco, tipoCozinha);
-            restauranteDAO.update(restauranteAtualizado);
-            JOptionPane.showMessageDialog(this, "Restaurante atualizado com sucesso!");
-            clearRestauranteFields();
-            refreshRestauranteList();
-        } catch (RestauranteNaoEncontradoException ex) {
+            Anime animeAtualizado = new Anime(id, nome, categoria, anoLancamento);
+            animeDAO.update(animeAtualizado);
+            JOptionPane.showMessageDialog(this, "Anime atualizado com sucesso!");
+            clearAnimeFields();
+            refreshAnimeList();
+        } catch (AnimeNaoEncontradoException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro de Atualização", JOptionPane.ERROR_MESSAGE);
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao atualizar restaurante: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Erro ao atualizar anime: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    private void excluirRestaurante() {
+    private void excluirAnime() {
         try {
-            String id = restIdField.getText().trim();
+            String id = aniIdField.getText().trim();
             if (id.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "ID do Restaurante não pode ser vazio para exclusão.", "Erro de Entrada", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "ID do Anime não pode ser vazio para exclusão.", "Erro de Entrada", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            int confirm = JOptionPane.showConfirmDialog(this, "Tem certeza que deseja excluir o restaurante com ID: " + id + "?", "Confirmar Exclusão", JOptionPane.YES_NO_OPTION);
+            int confirm = JOptionPane.showConfirmDialog(this, "Tem certeza que deseja excluir o anime com ID: " + id + "?", "Confirmar Exclusão", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
-                restauranteDAO.delete(id);
-                JOptionPane.showMessageDialog(this, "Restaurante excluído com sucesso!");
-                clearRestauranteFields();
-                refreshRestauranteList();
+                animeDAO.delete(id);
+                JOptionPane.showMessageDialog(this, "Anime excluído com sucesso!");
+                clearAnimeFields();
+                refreshAnimeList();
             }
-        } catch (RestauranteNaoEncontradoException ex) {
+        } catch (AnimeNaoEncontradoException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro de Exclusão", JOptionPane.ERROR_MESSAGE);
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao excluir restaurante: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Erro ao excluir anime: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    private void clearRestauranteFields() {
-        restIdField.setText("");
-        restNomeField.setText("");
-        restEnderecoField.setText("");
-        restTipoCozinhaField.setText("");
+    private void clearAnimeFields() {
+        aniIdField.setText("");
+        aniNomeField.setText("");
+        aniCategoriaField.setText("");
+        aniAnoLancamentoField.setText("");
     }
 
-    private void refreshRestauranteList() {
-        restDisplayArea.setText("");
-        List<Restaurante> restaurantes = restauranteDAO.read();
-        if (restaurantes.isEmpty()) {
-            restDisplayArea.append("Nenhum restaurante cadastrado.\n");
+    private void refreshAnimeList() {
+        aniDisplayArea.setText("");
+        List<Anime> animes = animeDAO.read();
+        if (animes.isEmpty()) {
+            aniDisplayArea.append("Nenhum anime cadastrado.\n");
         } else {
-            for (Restaurante r : restaurantes) {
-                restDisplayArea.append(r.toString() + "\n");
+            for (Anime a : animes) {
+                aniDisplayArea.append(a.toString() + "\n");
             }
         }
     }
@@ -1096,7 +1094,7 @@ class GerenciadorEntidadesGUI extends JFrame {
     private void refreshAllLists() {
         refreshProdutoList();
         refreshClienteList();
-        refreshRestauranteList();
+        refreshAnimeList();
         refreshFuncionarioList();
     }
 
