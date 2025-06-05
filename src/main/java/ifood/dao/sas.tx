@@ -1,0 +1,773 @@
+// AddressDAO.java
+package ifood.dao;
+
+import ifood.model.Address;
+import com.minifoodapp.util.DatabaseConnector;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class AddressDAO {
+
+    public void addAddress(Address address) throws SQLException {
+        String sql = "INSERT INTO Address (street, number, complement, neighborhood, city, state, zipCode) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, address.getStreet());
+            stmt.setString(2, address.getNumber());
+            stmt.setString(3, address.getComplement());
+            stmt.setString(4, address.getNeighborhood());
+            stmt.setString(5, address.getCity());
+            stmt.setString(6, address.getState());
+            stmt.setString(7, address.getZipCode());
+            stmt.executeUpdate();
+
+            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    address.setId(generatedKeys.getInt(1));
+                }
+            }
+        }
+    }
+
+    public Address getById(int id) throws SQLException {
+        String sql = "SELECT * FROM Address WHERE id = ?";
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                Address address = new Address();
+                address.setId(rs.getInt("id"));
+                address.setStreet(rs.getString("street"));
+                address.setNumber(rs.getString("number"));
+                address.setComplement(rs.getString("complement"));
+                address.setNeighborhood(rs.getString("neighborhood"));
+                address.setCity(rs.getString("city"));
+                address.setState(rs.getString("state"));
+                address.setZipCode(rs.getString("zipCode"));
+                return address;
+            }
+        }
+        return null;
+    }
+
+    public List<Address> getAllAddresses() throws SQLException {
+        List<Address> addresses = new ArrayList<>();
+        String sql = "SELECT * FROM Address";
+        try (Connection conn = DatabaseConnector.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                Address address = new Address();
+                address.setId(rs.getInt("id"));
+                address.setStreet(rs.getString("street"));
+                address.setNumber(rs.getString("number"));
+                address.setComplement(rs.getString("complement"));
+                address.setNeighborhood(rs.getString("neighborhood"));
+                address.setCity(rs.getString("city"));
+                address.setState(rs.getString("state"));
+                address.setZipCode(rs.getString("zipCode"));
+                addresses.add(address);
+            }
+        }
+        return addresses;
+    }
+
+    public void updateAddress(Address address) throws SQLException {
+        String sql = "UPDATE Address SET street = ?, number = ?, complement = ?, neighborhood = ?, city = ?, state = ?, zipCode = ? WHERE id = ?";
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, address.getStreet());
+            stmt.setString(2, address.getNumber());
+            stmt.setString(3, address.getComplement());
+            stmt.setString(4, address.getNeighborhood());
+            stmt.setString(5, address.getCity());
+            stmt.setString(6, address.getState());
+            stmt.setString(7, address.getZipCode());
+            stmt.setInt(8, address.getId());
+            stmt.executeUpdate();
+        }
+    }
+
+    public void deleteAddress(int id) throws SQLException {
+        String sql = "DELETE FROM Address WHERE id = ?";
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            stmt.executeUpdate();
+        }
+    }
+
+    public void deleteAddressIfNotReferenced(int addressId) throws SQLException {
+        // Check if address is referenced by any Client or Restaurant
+        String checkSql = "SELECT COUNT(*) FROM Client WHERE addressId = ? UNION ALL SELECT COUNT(*) FROM Restaurant WHERE addressId = ?";
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(checkSql)) {
+            stmt.setInt(1, addressId);
+            stmt.setInt(2, addressId);
+            ResultSet rs = stmt.executeQuery();
+
+            boolean isReferenced = false;
+            while (rs.next()) {
+                if (rs.getInt(1) > 0) {
+                    isReferenced = true;
+                    break;
+                }
+            }
+
+            if (!isReferenced) {
+                deleteAddress(addressId);
+            }
+        }
+    }
+}
+
+// CategoryDAO.java
+package ifood.dao;
+
+import ifood.model.Category;
+import com.minifoodapp.util.DatabaseConnector;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class CategoryDAO {
+
+    public void addCategory(Category category) throws SQLException {
+        String sql = "INSERT INTO Category (name, description) VALUES (?, ?)";
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, category.getName());
+            stmt.setString(2, category.getDescription());
+            stmt.executeUpdate();
+
+            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    category.setId(generatedKeys.getInt(1));
+                }
+            }
+        }
+    }
+
+    public Category getById(int id) throws SQLException {
+        String sql = "SELECT * FROM Category WHERE id = ?";
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                Category category = new Category();
+                category.setId(rs.getInt("id"));
+                category.setName(rs.getString("name"));
+                category.setDescription(rs.getString("description"));
+                return category;
+            }
+        }
+        return null;
+    }
+
+    public List<Category> getAllCategories() throws SQLException {
+        List<Category> categories = new ArrayList<>();
+        String sql = "SELECT * FROM Category";
+        try (Connection conn = DatabaseConnector.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                Category category = new Category();
+                category.setId(rs.getInt("id"));
+                category.setName(rs.getString("name"));
+                category.setDescription(rs.getString("description"));
+                categories.add(category);
+            }
+        }
+        return categories;
+    }
+
+    public void updateCategory(Category category) throws SQLException {
+        String sql = "UPDATE Category SET name = ?, description = ? WHERE id = ?";
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, category.getName());
+            stmt.setString(2, category.getDescription());
+            stmt.setInt(3, category.getId());
+            stmt.executeUpdate();
+        }
+    }
+
+    public void deleteCategory(int id) throws SQLException {
+        String sql = "DELETE FROM Category WHERE id = ?";
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            stmt.executeUpdate();
+        }
+    }
+}
+
+// ProductDAO.java
+package ifood.dao;
+
+import ifood.model.Product;
+import ifood.model.Category;
+import ifood.model.Restaurant;
+import com.minifoodapp.util.DatabaseConnector;
+
+import java.math.BigDecimal;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class ProductDAO {
+
+    public void addProduct(Product product) throws SQLException {
+        String sql = "INSERT INTO Product (name, description, price, categoryId, restaurantId) VALUES (?, ?, ?, ?, ?)";
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, product.getName());
+            stmt.setString(2, product.getDescription());
+            stmt.setBigDecimal(3, product.getPrice());
+            stmt.setInt(4, product.getCategory().getId());
+            stmt.setInt(5, product.getRestaurant().getId());
+            stmt.executeUpdate();
+
+            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    product.setId(generatedKeys.getInt(1));
+                }
+            }
+        }
+    }
+
+    public Product getById(int id) throws SQLException {
+        String sql = "SELECT * FROM Product WHERE id = ?";
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                Product product = new Product();
+                product.setId(rs.getInt("id"));
+                product.setName(rs.getString("name"));
+                product.setDescription(rs.getString("description"));
+                product.setPrice(rs.getBigDecimal("price"));
+
+                // Load related Category
+                CategoryDAO categoryDAO = new CategoryDAO();
+                product.setCategory(categoryDAO.getById(rs.getInt("categoryId")));
+
+                // Load related Restaurant
+                RestaurantDAO restaurantDAO = new RestaurantDAO();
+                product.setRestaurant(restaurantDAO.getById(rs.getInt("restaurantId")));
+
+                return product;
+            }
+        }
+        return null;
+    }
+
+    public List<Product> getAllProducts() throws SQLException {
+        List<Product> products = new ArrayList<>();
+        String sql = "SELECT * FROM Product";
+        try (Connection conn = DatabaseConnector.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                Product product = new Product();
+                product.setId(rs.getInt("id"));
+                product.setName(rs.getString("name"));
+                product.setDescription(rs.getString("description"));
+                product.setPrice(rs.getBigDecimal("price"));
+
+                CategoryDAO categoryDAO = new CategoryDAO();
+                product.setCategory(categoryDAO.getById(rs.getInt("categoryId")));
+
+                RestaurantDAO restaurantDAO = new RestaurantDAO();
+                product.setRestaurant(restaurantDAO.getById(rs.getInt("restaurantId")));
+
+                products.add(product);
+            }
+        }
+        return products;
+    }
+
+    public List<Product> getProductsByRestaurant(int restaurantId) throws SQLException {
+        List<Product> products = new ArrayList<>();
+        String sql = "SELECT * FROM Product WHERE restaurantId = ?";
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, restaurantId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                Product product = new Product();
+                product.setId(rs.getInt("id"));
+                product.setName(rs.getString("name"));
+                product.setDescription(rs.getString("description"));
+                product.setPrice(rs.getBigDecimal("price"));
+
+                CategoryDAO categoryDAO = new CategoryDAO();
+                product.setCategory(categoryDAO.getById(rs.getInt("categoryId")));
+
+                RestaurantDAO restaurantDAO = new RestaurantDAO();
+                product.setRestaurant(restaurantDAO.getById(restaurantId));
+
+                products.add(product);
+            }
+        }
+        return products;
+    }
+
+    public void updateProduct(Product product) throws SQLException {
+        String sql = "UPDATE Product SET name = ?, description = ?, price = ?, categoryId = ?, restaurantId = ? WHERE id = ?";
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, product.getName());
+            stmt.setString(2, product.getDescription());
+            stmt.setBigDecimal(3, product.getPrice());
+            stmt.setInt(4, product.getCategory().getId());
+            stmt.setInt(5, product.getRestaurant().getId());
+            stmt.setInt(6, product.getId());
+            stmt.executeUpdate();
+        }
+    }
+
+    public void deleteProduct(int id) throws SQLException {
+        String sql = "DELETE FROM Product WHERE id = ?";
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            stmt.executeUpdate();
+        }
+    }
+}
+
+// RestaurantDAO.java
+package ifood.dao;
+
+import ifood.model.Restaurant;
+import ifood.model.Address;
+import com.minifoodapp.util.DatabaseConnector;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class RestaurantDAO {
+
+    public void addRestaurant(Restaurant restaurant) throws SQLException {
+        String sql = "INSERT INTO Restaurant (name, description, addressId) VALUES (?, ?, ?)";
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, restaurant.getName());
+            stmt.setString(2, restaurant.getDescription());
+            if (restaurant.getAddress() != null) {
+                stmt.setInt(3, restaurant.getAddress().getId());
+            } else {
+                stmt.setNull(3, Types.INTEGER);
+            }
+            stmt.executeUpdate();
+
+            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    restaurant.setId(generatedKeys.getInt(1));
+                }
+            }
+        }
+    }
+
+    public Restaurant getById(int id) throws SQLException {
+        String sql = "SELECT * FROM Restaurant WHERE id = ?";
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                Restaurant restaurant = new Restaurant();
+                restaurant.setId(rs.getInt("id"));
+                restaurant.setName(rs.getString("name"));
+                restaurant.setDescription(rs.getString("description"));
+
+                int addressId = rs.getInt("addressId");
+                if (!rs.wasNull()) {
+                    AddressDAO addressDAO = new AddressDAO();
+                    restaurant.setAddress(addressDAO.getById(addressId));
+                }
+
+                return restaurant;
+            }
+        }
+        return null;
+    }
+
+    public List<Restaurant> getAllRestaurants() throws SQLException {
+        List<Restaurant> restaurants = new ArrayList<>();
+        String sql = "SELECT * FROM Restaurant";
+        try (Connection conn = DatabaseConnector.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                Restaurant restaurant = new Restaurant();
+                restaurant.setId(rs.getInt("id"));
+                restaurant.setName(rs.getString("name"));
+                restaurant.setDescription(rs.getString("description"));
+
+                int addressId = rs.getInt("addressId");
+                if (!rs.wasNull()) {
+                    AddressDAO addressDAO = new AddressDAO();
+                    restaurant.setAddress(addressDAO.getById(addressId));
+                }
+
+                restaurants.add(restaurant);
+            }
+        }
+        return restaurants;
+    }
+
+    public void updateRestaurant(Restaurant restaurant) throws SQLException {
+        String sql = "UPDATE Restaurant SET name = ?, description = ?, addressId = ? WHERE id = ?";
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, restaurant.getName());
+            stmt.setString(2, restaurant.getDescription());
+            if (restaurant.getAddress() != null) {
+                stmt.setInt(3, restaurant.getAddress().getId());
+            } else {
+                stmt.setNull(3, Types.INTEGER);
+            }
+            stmt.setInt(4, restaurant.getId());
+            stmt.executeUpdate();
+        }
+    }
+
+    public void deleteRestaurant(int id) throws SQLException {
+        String sql = "DELETE FROM Restaurant WHERE id = ?";
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            stmt.executeUpdate();
+        }
+    }
+}
+
+// StatusPaymentDAO.java
+package ifood.dao;
+
+import ifood.model.StatusPayment;
+import com.minifoodapp.util.DatabaseConnector;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class StatusPaymentDAO {
+
+    public void addStatusPayment(StatusPayment statusPayment) throws SQLException {
+        String sql = "INSERT INTO StatusPayment (description) VALUES (?)";
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, statusPayment.getDescription());
+            stmt.executeUpdate();
+
+            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    statusPayment.setId(generatedKeys.getInt(1));
+                }
+            }
+        }
+    }
+
+    public StatusPayment getById(int id) throws SQLException {
+        String sql = "SELECT * FROM StatusPayment WHERE id = ?";
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                StatusPayment statusPayment = new StatusPayment();
+                statusPayment.setId(rs.getInt("id"));
+                statusPayment.setDescription(rs.getString("description"));
+                return statusPayment;
+            }
+        }
+        return null;
+    }
+
+    public List<StatusPayment> getAllStatusPayments() throws SQLException {
+        List<StatusPayment> statusPayments = new ArrayList<>();
+        String sql = "SELECT * FROM StatusPayment";
+        try (Connection conn = DatabaseConnector.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                StatusPayment statusPayment = new StatusPayment();
+                statusPayment.setId(rs.getInt("id"));
+                statusPayment.setDescription(rs.getString("description"));
+                statusPayments.add(statusPayment);
+            }
+        }
+        return statusPayments;
+    }
+
+    public void updateStatusPayment(StatusPayment statusPayment) throws SQLException {
+        String sql = "UPDATE StatusPayment SET description = ? WHERE id = ?";
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, statusPayment.getDescription());
+            stmt.setInt(2, statusPayment.getId());
+            stmt.executeUpdate();
+        }
+    }
+
+    public void deleteStatusPayment(int id) throws SQLException {
+        String sql = "DELETE FROM StatusPayment WHERE id = ?";
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            stmt.executeUpdate();
+        }
+    }
+}
+
+// StatusRequestDAO.java
+package ifood.dao;
+
+import ifood.model.StatusRequest;
+import com.minifoodapp.util.DatabaseConnector;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class StatusRequestDAO {
+
+    public void addStatusRequest(StatusRequest statusRequest) throws SQLException {
+        String sql = "INSERT INTO StatusRequest (description) VALUES (?)";
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, statusRequest.getDescription());
+            stmt.executeUpdate();
+
+            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    statusRequest.setId(generatedKeys.getInt(1));
+                }
+            }
+        }
+    }
+
+    public StatusRequest getById(int id) throws SQLException {
+        String sql = "SELECT * FROM StatusRequest WHERE id = ?";
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                StatusRequest statusRequest = new StatusRequest();
+                statusRequest.setId(rs.getInt("id"));
+                statusRequest.setDescription(rs.getString("description"));
+                return statusRequest;
+            }
+        }
+        return null;
+    }
+
+    public List<StatusRequest> getAllStatusRequests() throws SQLException {
+        List<StatusRequest> statusRequests = new ArrayList<>();
+        String sql = "SELECT * FROM StatusRequest";
+        try (Connection conn = DatabaseConnector.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                StatusRequest statusRequest = new StatusRequest();
+                statusRequest.setId(rs.getInt("id"));
+                statusRequest.setDescription(rs.getString("description"));
+                statusRequests.add(statusRequest);
+            }
+        }
+        return statusRequests;
+    }
+
+    public void updateStatusRequest(StatusRequest statusRequest) throws SQLException {
+        String sql = "UPDATE StatusRequest SET description = ? WHERE id = ?";
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, statusRequest.getDescription());
+            stmt.setInt(2, statusRequest.getId());
+            stmt.executeUpdate();
+        }
+    }
+
+    public void deleteStatusRequest(int id) throws SQLException {
+        String sql = "DELETE FROM StatusRequest WHERE id = ?";
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            stmt.executeUpdate();
+        }
+    }
+}
+
+// TypePaymentDAO.java
+package ifood.dao;
+
+import ifood.model.TypePayment;
+import com.minifoodapp.util.DatabaseConnector;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class TypePaymentDAO {
+
+    public void addTypePayment(TypePayment typePayment) throws SQLException {
+        String sql = "INSERT INTO TypePayment (description) VALUES (?)";
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, typePayment.getDescription());
+            stmt.executeUpdate();
+
+            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    typePayment.setId(generatedKeys.getInt(1));
+                }
+            }
+        }
+    }
+
+    public TypePayment getById(int id) throws SQLException {
+        String sql = "SELECT * FROM TypePayment WHERE id = ?";
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                TypePayment typePayment = new TypePayment();
+                typePayment.setId(rs.getInt("id"));
+                typePayment.setDescription(rs.getString("description"));
+                return typePayment;
+            }
+        }
+        return null;
+    }
+
+    public List<TypePayment> getAllTypePayments() throws SQLException {
+        List<TypePayment> typePayments = new ArrayList<>();
+        String sql = "SELECT * FROM TypePayment";
+        try (Connection conn = DatabaseConnector.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                TypePayment typePayment = new TypePayment();
+                typePayment.setId(rs.getInt("id"));
+                typePayment.setDescription(rs.getString("description"));
+                typePayments.add(typePayment);
+            }
+        }
+        return typePayments;
+    }
+
+    public void updateTypePayment(TypePayment typePayment) throws SQLException {
+        String sql = "UPDATE TypePayment SET description = ? WHERE id = ?";
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, typePayment.getDescription());
+            stmt.setInt(2, typePayment.getId());
+            stmt.executeUpdate();
+        }
+    }
+
+    public void deleteTypePayment(int id) throws SQLException {
+        String sql = "DELETE FROM TypePayment WHERE id = ?";
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            stmt.executeUpdate();
+        }
+    }
+}
+
+// RequestDAO.java
+package ifood.dao;
+
+import ifood.model.Request;
+import ifood.model.Client;
+import ifood.model.Restaurant;
+import ifood.model.StatusRequest;
+import ifood.model.StatusPayment;
+import ifood.model.TypePayment;
+import com.minifoodapp.util.DatabaseConnector;
+
+import java.math.BigDecimal;
+import java.sql.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+public class RequestDAO {
+
+    public void addRequest(Request request) throws SQLException {
+        String sql = "INSERT INTO Request (moment, totalValue, clientId, restaurantId, statusRequestId, statusPaymentId, typePaymentId) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setTimestamp(1, Timestamp.valueOf(request.getMoment()));
+            stmt.setBigDecimal(2, request.getTotalValue());
+            stmt.setInt(3, request.getClient().getId());
+            stmt.setInt(4, request.getRestaurant().getId());
+            stmt.setInt(5, request.getStatusRequest().getId());
+            stmt.setInt(6, request.getStatusPayment().getId());
+            stmt.setInt(7, request.getTypePayment().getId());
+            stmt.executeUpdate();
+
+            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    request.setId(generatedKeys.getInt(1));
+                }
+            }
+        }
+    }
+
+    public Request getById(int id) throws SQLException {
+        String sql = "SELECT * FROM Request WHERE id = ?";
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                Request request = new Request();
+                request.setId(rs.getInt("id"));
+                request.setMoment(rs.getTimestamp("moment").toLocalDateTime());
+                request.setTotalValue(rs.getBigDecimal("totalValue"));
+
+                // Load related entities
+                ClientDAO clientDAO = new ClientDAO();
+                request.setClient(clientDAO.getClientById(rs.getInt("clientId")));
+
+                RestaurantDAO restaurantDAO = new RestaurantDAO();
+                request.setRestaurant(restaurantDAO.getById(rs.getInt("restaurantId")));
+
+                StatusRequestDAO statusRequestDAO = new StatusRequestDAO();
+                request.setStatusRequest(statusRequestDAO.getById(rs.getInt("statusRequestId")));
+
+                StatusPaymentDAO statusPaymentDAO = new StatusPaymentDAO();
+                request.setStatusPayment(statusPaymentDAO.getById(rs.getInt("statusPaymentId")));
+
+                TypePaymentDAO typePaymentDAO = new TypePaymentDAO();
+                request.setTypePayment(typePaymentDAO.getById(rs.getInt("typePaymentId")));
+
+                return request;
+            }
+        }
+        return null;
+    }
+
+    public List<Request> getAllRequests() throws SQLException {
+        List<Request> requests = new ArrayList<>();
+        String sql = "SELECT * FROM Request ORDER BY moment DESC";
+        try (Connection conn = DatabaseConnector.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                Request request = new Request();
+                request.setId(rs.getInt("id"));
